@@ -29,9 +29,10 @@ func TestPut(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	bundle := Bundle{"data"}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Put(tt.args.key, tt.args.r); (err != nil) != tt.wantErr {
+			if err := bundle.Put(tt.args.key, tt.args.r); (err != nil) != tt.wantErr {
 				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -59,9 +60,10 @@ func TestPutBytes(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	bundle := Bundle{"data"}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := PutBytes(tt.args.key, tt.args.data); (err != nil) != tt.wantErr {
+			if err := bundle.PutBytes(tt.args.key, tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("PutBytes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -85,9 +87,10 @@ func TestGet(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	bundle := Bundle{"data"}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := Get(tt.args.key)
+			f, err := bundle.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -132,9 +135,10 @@ func TestGetBytes(t *testing.T) {
 			wantErr: true,
 		},
 	}
+	bundle := Bundle{"data"}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetBytes(tt.args.key)
+			got, err := bundle.GetBytes(tt.args.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetBytes() error = %v, wantErr %v", err, tt.wantErr)
 				return
