@@ -9,15 +9,22 @@ import (
 	"path/filepath"
 )
 
-const rootDir = "data"
+type Bundle struct{ rootDir string }
 
-func Put(key []byte, r io.Reader) error {
+func NewBundle(root string) (Bundle, error) {
+	if err := os.MkdirAll(root, os.ModePerm); err != nil {
+		return Bundle{}, fmt.Errorf("store: %w", err)
+	}
+	return Bundle{rootDir: root}, nil
+}
+
+func (b Bundle) Put(key []byte, r io.Reader) error {
 	h, err := hashIt(key)
 	if err != nil {
 		return fmt.Errorf("in Put(): %w", err)
 	}
 
-	f, err := create(h)
+	f, err := create(b.rootDir, h)
 	if err != nil {
 		return fmt.Errorf("in Put(): %w", err)
 	}
@@ -30,42 +37,42 @@ func Put(key []byte, r io.Reader) error {
 	return nil
 }
 
-func PutBytes(key []byte, data []byte) error {
+func (b Bundle) PutBytes(key []byte, data []byte) error {
 	r := bytes.NewReader(data)
-	return Put(key, r)
+	return b.Put(key, r)
 }
 
-func Get(key []byte) (io.Reader, error) {
-	b, err := GetBytes(key)
+func (b Bundle) Get(key []byte) (io.Reader, error) {
+	p, err := b.GetBytes(key)
 	if err != nil {
 		return nil, err
 	}
 
-	return bytes.NewReader(b), nil
+	return bytes.NewReader(p), nil
 }
-func GetBytes(key []byte) ([]byte, error) {
+func (b Bundle) GetBytes(key []byte) ([]byte, error) {
 	h, err := hashIt(key)
 	if err != nil {
 		return nil, fmt.Errorf("in GetBytes(): %w", err)
 	}
 
-	_, filePath := getPaths(h)
+	_, filePath := getPaths(b.rootDir, h)
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("in GetBytes(): %w", err)
 	}
 	defer f.Close()
 
-	b, err := io.ReadAll(f)
+	p, err := io.ReadAll(f)
 	if err != nil {
 		return nil, fmt.Errorf("in GetBytes(): %w", err)
 	}
 
-	return b, nil
+	return p, nil
 }
 
-func create(h []byte) (*os.File, error) {
-	dirPath, filePath := getPaths(h)
+func create(rootDir string, h []byte) (*os.File, error) {
+	dirPath, filePath := getPaths(rootDir, h)
 
 	err := os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
@@ -85,7 +92,7 @@ func hashIt(key []byte) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-func getPaths(h []byte) (dirPath, filePath string) {
+func getPaths(rootDir string, h []byte) (dirPath, filePath string) {
 	dirname := fmt.Sprintf("%x", h[:2])
 	filename := fmt.Sprintf("%x", h[2:])
 
